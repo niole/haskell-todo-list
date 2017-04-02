@@ -106,7 +106,6 @@ removeTodo ((i, content):todos) index
         | index == i         = removeTodo todos index
         | index < i          = (i-1, content):(removeTodo todos index)
         | otherwise          = (i, content):(removeTodo todos index)
-        | otherwise          = (i, content):(removeTodo todos index)
 
 {--
        adds todo item by taking text out of input content state
