@@ -60,8 +60,11 @@ addChar chr (State inputString todos) = State (append inputString chr) todos
        handles clicks
 --}
 handleClick :: Event -> State -> State
-handleClick (MousePress LeftButton (x, y)) (State content todos) = State content todos
+handleClick (MousePress LeftButton (x, y)) (State content todos) = State content (removeTodo todos $ yToIndex y)
 handleClick _ s = s
+
+getRemovableTodoIndex :: Point -> Int
+getRemovableTodoIndex (x, y) = yToIndex y
 
 {--
        handles key presses
@@ -96,8 +99,14 @@ handleNonLetter _ s = s
 {--
        removes todo
 --}
-removeTodo :: State -> State
-removeTodo (State inputContent todos) = State "" ( (0, inputContent):(incTodos todos) )
+removeTodo :: [(Int, Text)] -> Int -> [(Int, Text)]
+removeTodo [] index = []
+removeTodo ((i, content):todos) index
+        | index < 0          = todos
+        | index == i         = removeTodo todos index
+        | index < i          = (i-1, content):(removeTodo todos index)
+        | otherwise          = (i, content):(removeTodo todos index)
+        | otherwise          = (i, content):(removeTodo todos index)
 
 {--
        adds todo item by taking text out of input content state
@@ -119,7 +128,13 @@ renderTodos todos =  foldl (\a -> \b -> a & (renderTodo b)) blank todos
         renders a todo item
 --}
 renderTodo :: (Int, Text) -> Picture
-renderTodo (index, content) = translated 0.0 ((fromIntegral(index)*(-1.0)) - 1.0) $ (rectangle 2.0 1.0) & (text content)
+renderTodo (index, content) = translated 0.0 (indexToY index)  $ (rectangle 2.0 1.0) & (text content)
+
+indexToY :: Int -> Double
+indexToY index = (fromIntegral(index)*(-1.0)) - 1.0
+
+yToIndex :: Double -> Int
+yToIndex y = round((y + 1.0)*(-1.0))
 
 {--
        renders the input with what has been typed so far
